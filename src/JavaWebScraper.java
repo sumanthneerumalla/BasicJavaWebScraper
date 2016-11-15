@@ -56,7 +56,6 @@ public class JavaWebScraper {
                 urlVector.add(urlMatcher.group(1));
             }
         }
-        System.out.println(urlVector.size());
 
 
         return urlVector;
@@ -76,12 +75,11 @@ public class JavaWebScraper {
         return result.toString();
     }
 
-    public static boolean isValidURL(String someURL){
-        try{
-        getHTML(someURL);
+    public static boolean isValidURL(String someURL) {
+        try {
+            getHTML(someURL);
             return true;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -97,25 +95,22 @@ public class JavaWebScraper {
         // set of examined web pages
         HashSet<String> alreadyVisted = new HashSet<String>();
 
-//        String webpage = Web.getWeb(startingUrl);
-        System.out.println(startingUrl);
-        System.out.println(getURLSize(startingUrl));
-        System.out.println(getHTML(startingUrl));
-
         String nextUrl;
         int numVisited = 0;
         int totalBytes = 0;
-        while (!sitesToVisit.isEmpty() &&numVisited<50 && totalBytes<1000000 ) {
+        int pageSize = 0;
+        while (!sitesToVisit.isEmpty() && numVisited < 50 && totalBytes < 1000000) {
 
             //get the next url by turning the set into an array and grabbing the first item from the list
             String[] sitesToVisitArray = sitesToVisit.toArray(new String[sitesToVisit.size()]);
             nextUrl = sitesToVisitArray[0];
-            
+            numVisited++;
+            pageSize = getURLSize(nextUrl);
+            totalBytes += pageSize;
+            alreadyVisted.add(nextUrl);
 
             //remove the most recent url from the set
             sitesToVisit.remove(nextUrl);
-            System.out.print("size of set is now:");
-            System.out.println(sitesToVisit.size());
 
             //get a vector of urls at the most recent url and turn it into an array
             Vector<String> urlVector = parsePage(nextUrl);
@@ -124,18 +119,21 @@ public class JavaWebScraper {
             int counter = 0;
             //add urls from the recent urls only while the queue of sites to visit is less than 15
             //or until the new vector
-            while( sitesToVisit.size()<=15 && counter<arrayOfNextUrls.length){
-                String urlCandidate ;
+            while (sitesToVisit.size() <= 15 && counter < arrayOfNextUrls.length) {
+                String urlCandidate;
                 urlCandidate = arrayOfNextUrls[counter];
-                if(isValidURL(urlCandidate) && !alreadyVisted.contains(urlCandidate) && !sitesToVisit.contains(urlCandidate)){
+                if (isValidURL(urlCandidate) && !alreadyVisted.contains(urlCandidate) && !sitesToVisit.contains(urlCandidate)) {
                     sitesToVisit.add(urlCandidate);
                 }
                 counter++;
             }
-
-       }
-
-        System.out.println(sitesToVisit.size());
-
+            System.out.println("Site number:" + numVisited);
+            System.out.println("Just visited: " + nextUrl);
+            System.out.println("Bytes read so far: " + totalBytes);
+            System.out.println();
+        }
+        System.out.println("*******Final Report***********");
+        System.out.println("Total Bytes read: " + totalBytes);
+        System.out.println("Number of pages visited: " + numVisited);
     }
 }
