@@ -88,7 +88,7 @@ public class JavaWebScraper {
         String nextUrl;
         int numVisited = 0;
         int totalBytes = 0;
-        int pageSize ;
+        int pageSize;
         while (!sitesToVisit.isEmpty() && numVisited < 50 && totalBytes < 1000000) {
 
             //get the next url by turning the set into an array and grabbing the first item from the list
