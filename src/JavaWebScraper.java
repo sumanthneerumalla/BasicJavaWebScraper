@@ -88,7 +88,7 @@ public class JavaWebScraper {
         String nextUrl;
         int numVisited = 0;
         int totalBytes = 0;
-        int pageSize = 0;
+        int pageSize ;
         while (!sitesToVisit.isEmpty() && numVisited < 50 && totalBytes < 1000000) {
 
             //get the next url by turning the set into an array and grabbing the first item from the list
@@ -107,14 +107,15 @@ public class JavaWebScraper {
             sitesToVisit.remove(nextUrl);
 
             //get a vector of urls at the most recent url and turn it into an array
-            Vector<String> urlVector = new Vector<String>();
+            Vector<String> urlVector;
             String[] arrayOfNextUrls = {nextUrl};
+
+            //even though the nextUrl should be a valid URl, its possible that the website went down in that time
             try {
                 urlVector = parsePage(nextUrl);
                 arrayOfNextUrls = urlVector.toArray(new String[urlVector.size()]);
             } catch (Exception e) {
                 //not sure if this will ever be required but leaving this anyways.
-                urlVector = new Vector<String>();
                 arrayOfNextUrls[0] = nextUrl;
             }
 
