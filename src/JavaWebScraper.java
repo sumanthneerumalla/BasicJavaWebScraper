@@ -1,16 +1,8 @@
-import sun.misc.IOUtils;
-import sun.misc.Queue;
-
-//import org.apache.commons.io.IOUtils;
-
-
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.net.*;
 import java.io.*;
-//
 
 public class JavaWebScraper {
     public static int getURLSize(String urlToRead) throws Exception {
@@ -18,10 +10,6 @@ public class JavaWebScraper {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         InputStream pageStream = conn.getInputStream();
-
-//        byte[] pageInBytes = IOUtils.toByteArray(pageStream);
-
-        //alternative to IOUTILS
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int reads = pageStream.read();
@@ -33,20 +21,21 @@ public class JavaWebScraper {
 
         return pageInBytes.length;
 
-
     }
 
     public static Vector<String> parsePage(String urlToRead) throws Exception {
         Vector<String> urlVector = new Vector<String>();
+
+//      Unused regexes
 //        String urlRegExp = "(https?:\\/\\/(?:www\\.|(?!www))[^\\s\\.]+\\.[^\\s]{2,}|www\\.[^\\s]+\\.[^\\s]{2,})";
+//        String urlRegExp = "(<a.*?>.*?</a>)";
+
         String anchorRegExp = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
         String urlRegExp = "\"(.*)\"";
-//        String urlRegExp = "(<a.*?>.*?</a>)";
         Pattern anchorPattern = Pattern.compile(anchorRegExp);
         Matcher anchorMatcher = anchorPattern.matcher(getHTML(urlToRead));
 
         Pattern urlPattern = Pattern.compile(urlRegExp);
-
 
         while (anchorMatcher.find()) {
 
@@ -56,7 +45,6 @@ public class JavaWebScraper {
                 urlVector.add(urlMatcher.group(1));
             }
         }
-
 
         return urlVector;
     }
@@ -75,6 +63,8 @@ public class JavaWebScraper {
         return result.toString();
     }
 
+    //Using this function is REALLY not good for performance because it means visiting each url more than once
+    //but, its an easy way to see if a possible url from parsePage() is valid
     public static boolean isValidURL(String someURL) {
         try {
             getHTML(someURL);
@@ -105,16 +95,28 @@ public class JavaWebScraper {
             String[] sitesToVisitArray = sitesToVisit.toArray(new String[sitesToVisit.size()]);
             nextUrl = sitesToVisitArray[0];
             numVisited++;
-            pageSize = getURLSize(nextUrl);
-            totalBytes += pageSize;
-            alreadyVisted.add(nextUrl);
-
+            try {
+                pageSize = getURLSize(nextUrl);
+                totalBytes += pageSize;
+                alreadyVisted.add(nextUrl);
+            } catch (Exception e) {
+                //if getting the page size doesn't work, then dont count it as a page visited
+                numVisited--;
+            }
             //remove the most recent url from the set
             sitesToVisit.remove(nextUrl);
 
             //get a vector of urls at the most recent url and turn it into an array
-            Vector<String> urlVector = parsePage(nextUrl);
-            String[] arrayOfNextUrls = urlVector.toArray(new String[urlVector.size()]);
+            Vector<String> urlVector = new Vector<String>();
+            String[] arrayOfNextUrls = {nextUrl};
+            try {
+                urlVector = parsePage(nextUrl);
+                arrayOfNextUrls = urlVector.toArray(new String[urlVector.size()]);
+            } catch (Exception e) {
+                //not sure if this will ever be required but leaving this anyways.
+                urlVector = new Vector<String>();
+                arrayOfNextUrls[0] = nextUrl;
+            }
 
             int counter = 0;
             //add urls from the recent urls only while the queue of sites to visit is less than 15
